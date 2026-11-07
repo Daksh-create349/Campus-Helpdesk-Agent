@@ -1,0 +1,20 @@
+{
+  "id": "campus-helpdesk",
+  "name": "campus-helpdesk",
+  "displayName": "Campus Helpdesk",
+  "version": "1.0.0",
+  "description": "Campus Helpdesk plugin for querying course timetables, schedules, classroom locations, and academic assistance.",
+  "category": "Education",
+  "author": {
+    "name": "Campus Helpdesk Team"
+  },
+  "tags": [
+    "campus",
+    "timetable",
+    "schedule",
+    "student",
+    "education"
+  ],
+  "entrypoint": "plugin.json"
+}
+
