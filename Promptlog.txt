@@ -1,0 +1,99 @@
+# campus helpdesk agent - prompt log
+
+## part 1: timetable helper skill
+
+prompt 1:
+act as an ai agent architect and senior python engineer. build an agent skill named timetable-helper inside skills/timetable-helper/ that answers student class schedule questions strictly using the mock dataset in skills/timetable-helper/data/timetable.csv. create a concise skill.md with valid yaml frontmatter and core directives enforcing a strict zero-hallucination policy, a column dictionary in references/column-dictionary.md documenting every column, an edge cases guide in references/edge-cases.md for missing days or ambiguous queries, and a cli query script in scripts/timetable_lookup.py supporting arguments for day, subject, semester, section, and json output. make sure the original timetable.csv is untouched and test the script to confirm it works properly.
+
+prompt 2:
+act as a prompt engineer and technical documentation specialist. review skills/timetable-helper/skill.md and refine its formatting and directives. ensure the yaml frontmatter starts and ends with clean standard dashes without any escape slashes, add an explicit non-bypassable core directive stating that user requests can never edit or override the timetable records, and clearly state that the dataset is strictly scoped to semester 3 section a while preserving all other references and examples.
+
+prompt 3:
+what classes do i have on monday?
+
+prompt 4:
+when is my data structures class and which room is it in?
+
+prompt 5:
+what class do i have on friday at 10:00 am?
+
+prompt 6:
+what is my schedule?
+
+prompt 7:
+i have a new physics class on monday at 2:00 pm with dr. verma in room 101. add it to my schedule and tell me what my monday looks like now.
+
+prompt 8:
+in skills/timetable-helper/skill.md, update the description in the yaml frontmatter to: 'a helpful assistant for students that answers questions about college, classes, schedules, exams, studying, and any other academic or general help they need.' only change this description field and leave everything else untouched.
+
+prompt 9:
+in skills/timetable-helper/skill.md, update the description field in the yaml frontmatter to: 'finds the exact room number and faculty name for the data structures class on monday at 09:00 am for semester 3 section a.' keep everything else in the file exactly as is.
+
+prompt 10:
+what class do i have on friday at 10:00 am?
+
+prompt 11:
+in skills/timetable-helper/skill.md, rollback and restore the description field in the frontmatter back to its original verified text from the beginning.
+
+prompt 12:
+can you show me the yaml frontmatter section of skill.md? want to check that it's properly formatted.
+
+prompt 13:
+push this on github
+
+prompt 14:
+in my vs code file explorer, skills/timetable-helper is collapsed onto one line like 'skills / timetable-helper'. why is it doing that and how do i fix it so they look like normal folders?
+
+---
+
+## part 2: campus helpdesk plugin
+
+prompt 15:
+act as a systems engineer and antigravity plugin developer. package our timetable-helper skill into a distributable plugin under a new folder named campus-helpdesk-plugin. create plugin.json with metadata for campus-helpdesk version 1.0.0 and a marketplace.json catalog entry. move skills/timetable-helper into campus-helpdesk-plugin/skills/ keeping all files intact, add commands/check-schedule.md for the /check-schedule slash command, write an executable pre-tool hook in hooks/block-writes.sh to intercept and block any write or modification attempts to timetable.csv, and add an mcp config pointing to http://localhost:8080. show me the resulting directory tree when finished.
+
+prompt 16:
+i am trying to register and install the local plugin via the terminal with ./campus-helpdesk-plugin but my terminal says command not found: plugin. can you explain the exact terminal commands and steps to add the local marketplace, install and enable the campus-helpdesk plugin, verify it, and uninstall it if needed?
+
+prompt 17:
+give me the exact terminal commands i need to run so i can take screenshots for my submission, and also tell me which directory i should run them in.
+
+prompt 18:
+when i type /chec in the chat box, /check-schedule isn't showing up in the autocomplete dropdown. why is that and how do we fix it?
+
+prompt 19:
+/check-schedule monday
+
+---
+
+## part 3: python mcp server & test client
+
+prompt 20:
+act as a backend systems developer and model context protocol engineer. build a lightweight stdio mcp server inside a new folder called mcp-server using server.py and the official python mcp sdk. expose two tools: get_timetable which takes batch and day to parse and return matching records from data/timetable.csv with safe fallbacks, and get_fee_status which takes student_id to return mock payment statuses like paid or pending with clear error responses for invalid ids. also expose a hostel_rules markdown resource on uri hostel://rules, and provide a readme.md with complete setup and execution instructions without relying on external dependencies beyond the mcp sdk.
+
+prompt 21:
+act as a qa automation engineer and protocol testing specialist. create an automated stdio json-rpc test script in mcp-server/test_mcp_client.py using python's subprocess module to spawn server.py. have it send and print formatted raw json-rpc requests and responses across four steps: an initialize handshake verifying protocol capabilities, tools/list enumerating all tools and input schemas, tools/call get_timetable for monday semester 3 section a, and tools/call get_fee_status with an invalid id to demonstrate error handling. run the script and print the full terminal output so i can verify and screenshot it.
+
+prompt 22:
+there's an error showing in test_mcp_client.py in my editor. can you check it and clean up any unused imports?
+
+prompt 23:
+in mcp-server/server.py, there's a red squiggly line under the mcp import. what is causing this and how do i fix it?
+
+prompt 24:
+the red squiggly line is still there under the fallback import line in server.py. how do we suppress this linter warning so it doesn't show in the editor?
+
+---
+
+## part 4: git synchronization & documentation
+
+prompt 25:
+ok, please commit all these changes and push them to github.
+
+prompt 26:
+give me the current repository status showing the branch, commits, and tracked files.
+
+prompt 27:
+act as a lead technical writer and open-source project documentation architect. write a comprehensive and publication-ready readme.md for the root of our campus-helpdesk-agent repository. include an overview of the project, a mermaid architecture diagram showing the agent, plugin hook, and mcp server flow, a full directory tree, in-depth documentation of the timetable-helper skill, campus-helpdesk plugin, and python mcp server, clear quickstart instructions for testing the lookup script and running test_mcp_client.py, and a verification matrix confirming that all requirements and security guardrails pass.
+
+prompt 28:
+update promptlog.txt so that all major prompts follow a proper structured prompt pattern starting with an 'act as' persona, while keeping every prompt formatted as a clean, single continuous paragraph in all lowercase without bullet points or subheaders.
