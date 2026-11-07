@@ -46,19 +46,24 @@ def resolve_csv_path(custom_path: Optional[str] = None) -> Path:
     if custom_path:
         return Path(custom_path).resolve()
 
-    # Look relative to the script location (skills/timetable-helper/scripts/..)
+    # 1. Look relative to the script location (skills/timetable-helper/scripts/..)
     script_dir = Path(__file__).resolve().parent
-    default_skill_path = script_dir.parent / "data" / "timetable.csv"
-    if default_skill_path.exists():
-        return default_skill_path
+    script_relative_path = script_dir.parent / "data" / "timetable.csv"
+    if script_relative_path.exists():
+        return script_relative_path
 
-    # Look relative to current working directory
-    cwd_path = Path("skills/timetable-helper/data/timetable.csv").resolve()
-    if cwd_path.exists():
-        return cwd_path
+    # 2. Look relative to repository root with plugin path
+    plugin_path = Path("campus-helpdesk-plugin/skills/timetable-helper/data/timetable.csv").resolve()
+    if plugin_path.exists():
+        return plugin_path
 
-    # Fallback to default expected location
-    return default_skill_path
+    # 3. Look relative to root standalone path
+    standalone_path = Path("skills/timetable-helper/data/timetable.csv").resolve()
+    if standalone_path.exists():
+        return standalone_path
+
+    # Fallback to script-relative path
+    return script_relative_path
 
 
 def load_timetable(csv_path: Path) -> Tuple[List[Dict[str, str]], Optional[str]]:

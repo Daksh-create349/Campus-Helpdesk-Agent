@@ -20,24 +20,27 @@ The `timetable-helper` skill enables accurate, reliable lookup of student course
 
 ## Quick Start: Using the Lookup Script
 
-Query the timetable using the CLI helper at `scripts/timetable_lookup.py`:
+Query the timetable using the CLI helper at `scripts/timetable_lookup.py` (portable relative to skill or workspace):
 
 ```bash
-# Query by day
-python3 skills/timetable-helper/scripts/timetable_lookup.py --day Monday
+# Query by day (from workspace root)
+python3 campus-helpdesk-plugin/skills/timetable-helper/scripts/timetable_lookup.py --day Monday
+
+# Or when working inside the skill folder:
+python3 scripts/timetable_lookup.py --day Monday
 
 # Query by subject
-python3 skills/timetable-helper/scripts/timetable_lookup.py --subject "Data Structures"
+python3 campus-helpdesk-plugin/skills/timetable-helper/scripts/timetable_lookup.py --subject "Data Structures"
 
 # Combined filters
-python3 skills/timetable-helper/scripts/timetable_lookup.py --day Tuesday --semester 3 --section A
+python3 campus-helpdesk-plugin/skills/timetable-helper/scripts/timetable_lookup.py --day Tuesday --semester 3 --section A
 
 # Output as JSON
-python3 skills/timetable-helper/scripts/timetable_lookup.py --subject "Mathematics" --json
+python3 campus-helpdesk-plugin/skills/timetable-helper/scripts/timetable_lookup.py --subject "Mathematics" --json
 
 # List available subjects or days
-python3 skills/timetable-helper/scripts/timetable_lookup.py --list-subjects
-python3 skills/timetable-helper/scripts/timetable_lookup.py --list-days
+python3 campus-helpdesk-plugin/skills/timetable-helper/scripts/timetable_lookup.py --list-subjects
+python3 campus-helpdesk-plugin/skills/timetable-helper/scripts/timetable_lookup.py --list-days
 ```
 
 ### Supported Parameters

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <rect width="100" height="100" rx="20" fill="#1e293b"/>
+  <!-- Cap / Academic icon -->
+  <polygon points="50,22 86,38 50,54 14,38" fill="#38bdf8"/>
+  <path d="M26,45 L26,65 C26,76 74,76 74,65 L74,45" fill="none" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+  <line x1="86" y1="38" x2="86" y2="68" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="86" cy="71" r="3" fill="#f59e0b"/>
+</svg>

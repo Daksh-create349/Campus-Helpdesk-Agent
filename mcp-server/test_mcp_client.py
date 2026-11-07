@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """
 test_mcp_client.py
-A standalone Python MCP client that spawns 'server.py' over stdio using subprocess.
-Demonstrates the full raw JSON-RPC 2.0 message exchange for:
-1. 'initialize'
-2. 'tools/list'
-3. 'tools/call' for 'get_timetable'
-4. 'tools/call' for 'get_fee_status' (failure case with INVALID999)
+Comprehensive standalone Python MCP client that spawns 'server.py' over stdio using subprocess.
+Demonstrates the complete raw JSON-RPC 2.0 message exchange across all 9 verification operations:
+1. 'initialize' protocol handshake
+2. 'tools/list' discovery
+3. Successful 'tools/call' for 'get_timetable' (Semester 3, Section A - Monday)
+4. Successful 'tools/call' for 'get_fee_status' (STU1001)
+5. 'tools/call' for 'get_fee_status' with an invalid ID (INVALID999)
+6. 'tools/call' for 'get_timetable' with unsupported semester (Semester 5, Section A)
+7. 'tools/call' for 'get_timetable' with Section B (Semester 3, Section B) - verifying Section A records are not returned
+8. 'tools/call' for 'get_timetable' with invalid day ('Funday')
+9. 'resources/read' for hostel rules ('hostel://rules')
 """
 
 import json
@@ -70,7 +75,7 @@ def main():
     python_bin = find_mcp_python()
 
     print("================================================================================")
-    print("STARTING MCP STDIO TEST CLIENT")
+    print("STARTING MCP STDIO TEST CLIENT (9-STEP VERIFICATION SUITE)")
     print(f"Server Target: {server_script}")
     print(f"Python Interpreter: {python_bin}")
     print("================================================================================")
@@ -85,8 +90,19 @@ def main():
         bufsize=1,
     )
 
-    def send_request(req_obj: dict) -> dict:
+    req_id_counter = 1
+
+    def send_request(method: str, params: dict) -> dict:
         """Send a JSON-RPC request and return parsed response."""
+        nonlocal req_id_counter
+        req_obj = {
+            "jsonrpc": "2.0",
+            "id": req_id_counter,
+            "method": method,
+            "params": params,
+        }
+        req_id_counter += 1
+
         print_exchange("CLIENT REQUEST (RAW JSON-RPC)", req_obj)
         raw_payload = json.dumps(req_obj) + "\n"
         process.stdin.write(raw_payload)
@@ -106,8 +122,15 @@ def main():
         print_exchange("SERVER RESPONSE (RAW JSON-RPC)", res_obj)
         return res_obj
 
-    def send_notification(notify_obj: dict):
+    def send_notification(method: str, params: dict = None):
         """Send a one-way notification without expecting a response."""
+        notify_obj = {
+            "jsonrpc": "2.0",
+            "method": method,
+        }
+        if params is not None:
+            notify_obj["params"] = params
+
         print_exchange("CLIENT NOTIFICATION (RAW JSON-RPC)", notify_obj)
         raw_payload = json.dumps(notify_obj) + "\n"
         process.stdin.write(raw_payload)
@@ -117,81 +140,169 @@ def main():
         # ----------------------------------------------------------------------
         # Step 1: Initialize Request
         # ----------------------------------------------------------------------
-        print_step(1, "Initialize Request and Handshake")
-        init_request = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "initialize",
-            "params": {
+        print_step(1, "Initialize Request and Capability Negotiation Handshake")
+        init_res = send_request(
+            "initialize",
+            {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {
                     "roots": {"listChanged": False},
-                    "sampling": {}
+                    "sampling": {},
                 },
                 "clientInfo": {
-                    "name": "test-mcp-client",
-                    "version": "1.0.0"
-                }
-            }
-        }
-        send_request(init_request)
+                    "name": "campus-helpdesk-test-client",
+                    "version": "1.0.0",
+                },
+            },
+        )
+        assert "result" in init_res, "Initialize handshake failed!"
 
         # Send standard initialized notification
-        send_notification({
-            "jsonrpc": "2.0",
-            "method": "notifications/initialized"
-        })
+        send_notification("notifications/initialized")
 
         # ----------------------------------------------------------------------
         # Step 2: Tools List Request
         # ----------------------------------------------------------------------
         print_step(2, "tools/list Request (Discover Available Tools)")
-        list_tools_request = {
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "tools/list",
-            "params": {}
-        }
-        send_request(list_tools_request)
+        tools_res = send_request("tools/list", {})
+        assert "result" in tools_res and "tools" in tools_res["result"]
+        tool_names = [t["name"] for t in tools_res["result"]["tools"]]
+        print(f"\nDiscovered Tools: {tool_names}")
+        assert "get_timetable" in tool_names and "get_fee_status" in tool_names
 
         # ----------------------------------------------------------------------
-        # Step 3: Tools Call Request for get_timetable
+        # Step 3: Successful tools/call for get_timetable
         # ----------------------------------------------------------------------
         print_step(3, "tools/call: 'get_timetable' (Semester 3, Section A - Monday)")
-        call_timetable_request = {
-            "jsonrpc": "2.0",
-            "id": 3,
-            "method": "tools/call",
-            "params": {
+        call_tt = send_request(
+            "tools/call",
+            {
                 "name": "get_timetable",
                 "arguments": {
                     "batch": "Semester 3, Section A",
-                    "day": "Monday"
-                }
-            }
-        }
-        send_request(call_timetable_request)
+                    "day": "Monday",
+                },
+            },
+        )
+        tt_text = call_tt["result"]["content"][0]["text"]
+        tt_data = json.loads(tt_text)
+        assert tt_data["status"] == "success"
+        assert tt_data["count"] == 3
+        print(f"\nVerified: Successfully retrieved {tt_data['count']} classes for Monday!")
 
         # ----------------------------------------------------------------------
-        # Step 4: Tools Call Request for get_fee_status (Failure Case: INVALID999)
+        # Step 4: Successful tools/call for get_fee_status
         # ----------------------------------------------------------------------
-        print_step(4, "tools/call: 'get_fee_status' (Failure Case: INVALID999)")
-        call_fee_request = {
-            "jsonrpc": "2.0",
-            "id": 4,
-            "method": "tools/call",
-            "params": {
+        print_step(4, "tools/call: 'get_fee_status' (Valid Student: STU1001)")
+        call_fee_valid = send_request(
+            "tools/call",
+            {
                 "name": "get_fee_status",
                 "arguments": {
-                    "student_id": "INVALID999"
-                }
-            }
-        }
-        send_request(call_fee_request)
+                    "student_id": "STU1001",
+                },
+            },
+        )
+        fee_valid_text = call_fee_valid["result"]["content"][0]["text"]
+        fee_valid_data = json.loads(fee_valid_text)
+        assert fee_valid_data["status"] == "success"
+        assert fee_valid_data["record"]["status"] == "Paid"
+        print(f"\nVerified: Fee record found for STU1001 with status '{fee_valid_data['record']['status']}'!")
 
-        print("\n================================================================================")
-        print("ALL 4 MCP JSON-RPC TEST STEPS COMPLETED SUCCESSFULLY!")
-        print("================================================================================")
+        # ----------------------------------------------------------------------
+        # Step 5: tools/call for get_fee_status (Invalid ID: INVALID999)
+        # ----------------------------------------------------------------------
+        print_step(5, "tools/call: 'get_fee_status' (Invalid ID: INVALID999 - Application Error)")
+        call_fee_invalid = send_request(
+            "tools/call",
+            {
+                "name": "get_fee_status",
+                "arguments": {
+                    "student_id": "INVALID999",
+                },
+            },
+        )
+        fee_invalid_text = call_fee_invalid["result"]["content"][0]["text"]
+        fee_invalid_data = json.loads(fee_invalid_text)
+        assert fee_invalid_data["status"] == "not_found"
+        print("\nVerified: Graceful application-level error returned with sample IDs.")
+
+        # ----------------------------------------------------------------------
+        # Step 6: tools/call for get_timetable with unsupported semester
+        # ----------------------------------------------------------------------
+        print_step(6, "tools/call: 'get_timetable' (Unsupported Semester: Semester 5, Section A)")
+        call_tt_unsupp = send_request(
+            "tools/call",
+            {
+                "name": "get_timetable",
+                "arguments": {
+                    "batch": "Semester 5, Section A",
+                    "day": "Monday",
+                },
+            },
+        )
+        tt_unsupp_data = json.loads(call_tt_unsupp["result"]["content"][0]["text"])
+        assert tt_unsupp_data["status"] == "not_found"
+        assert "semester '5'" in tt_unsupp_data["message"].lower()
+        print("\nVerified: Unsupported semester correctly rejected with descriptive error.")
+
+        # ----------------------------------------------------------------------
+        # Step 7: tools/call for get_timetable with Section B
+        # ----------------------------------------------------------------------
+        print_step(7, "tools/call: 'get_timetable' (Section B Verification: Never return Section A)")
+        call_tt_sec_b = send_request(
+            "tools/call",
+            {
+                "name": "get_timetable",
+                "arguments": {
+                    "batch": "Semester 3, Section B",
+                    "day": "Monday",
+                },
+            },
+        )
+        tt_sec_b_data = json.loads(call_tt_sec_b["result"]["content"][0]["text"])
+        assert tt_sec_b_data["status"] == "not_found"
+        assert len(tt_sec_b_data["records"]) == 0
+        assert "section 'b'" in tt_sec_b_data["message"].lower()
+        print("\nVerified: Section B query safely returns not_found without leaking Section A records!")
+
+        # ----------------------------------------------------------------------
+        # Step 8: tools/call for get_timetable with invalid day
+        # ----------------------------------------------------------------------
+        print_step(8, "tools/call: 'get_timetable' (Invalid Day: 'Funday')")
+        call_tt_bad_day = send_request(
+            "tools/call",
+            {
+                "name": "get_timetable",
+                "arguments": {
+                    "batch": "Semester 3, Section A",
+                    "day": "Funday",
+                },
+            },
+        )
+        tt_bad_day_data = json.loads(call_tt_bad_day["result"]["content"][0]["text"])
+        assert tt_bad_day_data["status"] == "error"
+        assert "invalid day" in tt_bad_day_data["message"].lower()
+        print("\nVerified: Invalid day rejected with error response.")
+
+        # ----------------------------------------------------------------------
+        # Step 9: resources/read for hostel rules
+        # ----------------------------------------------------------------------
+        print_step(9, "resources/read: Retrieve 'hostel://rules' Markdown Document")
+        res_read = send_request(
+            "resources/read",
+            {
+                "uri": "hostel://rules",
+            },
+        )
+        assert "result" in res_read and "contents" in res_read["result"]
+        doc_content = res_read["result"]["contents"][0]["text"]
+        assert "Hostel Rules and Regulations" in doc_content
+        print(f"\nVerified: Successfully retrieved hostel rules resource ({len(doc_content)} characters)!")
+
+        print("\n" + "=" * 80)
+        print("ALL 9 MCP JSON-RPC TEST STEPS COMPLETED AND VERIFIED SUCCESSFULLY!")
+        print("=" * 80)
 
     except Exception as exc:
         print(f"\nTest execution encountered an error: {exc}", file=sys.stderr)

@@ -1,8 +1,10 @@
 {
   "mcpServers": {
     "campus-helpdesk": {
-      "url": "http://localhost:8080"
+      "command": "python3",
+      "args": [
+        "${PLUGIN_ROOT}/mcp-server/server.py"
+      ]
     }
   }
 }
-
