@@ -239,3 +239,4 @@ if __name__ == "__main__":
     # Runs the MCP server over standard input/output (stdio)
     mcp.run(transport="stdio")
 
+# Updated by MCP workstream
