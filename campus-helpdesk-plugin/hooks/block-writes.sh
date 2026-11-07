@@ -30,9 +30,9 @@ def process_hook():
         }))
         sys.exit(0)
 
-    tool_call = payload.get("toolCall", {})
-    tool_name = str(tool_call.get("name", "")).strip().lower()
-    args = tool_call.get("args", {})
+    tool_call = payload.get("toolCall") or payload.get("tool_call") or {}
+    tool_name = str(tool_call.get("name") or payload.get("tool_name") or payload.get("tool") or payload.get("name") or "").strip().lower()
+    args = tool_call.get("args") or payload.get("tool_input") or payload.get("args") or payload.get("parameters") or payload.get("arguments") or {}
 
     # Extract all possible file path arguments across various agent specifications
     target_paths = []
