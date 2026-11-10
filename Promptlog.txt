@@ -95,5 +95,3 @@ give me the current repository status showing the branch, commits, and tracked f
 prompt 27:
 act as a lead technical writer and open-source project documentation architect. write a comprehensive and publication-ready readme.md for the root of our campus-helpdesk-agent repository. include an overview of the project, a mermaid architecture diagram showing the agent, plugin hook, and mcp server flow, a full directory tree, in-depth documentation of the timetable-helper skill, campus-helpdesk plugin, and python mcp server, clear quickstart instructions for testing the lookup script and running test_mcp_client.py, and a verification matrix confirming that all requirements and security guardrails pass.
 
-prompt 28:
-update promptlog.txt so that all major prompts follow a proper structured prompt pattern starting with an 'act as' persona, while keeping every prompt formatted as a clean, single continuous paragraph in all lowercase without bullet points or subheaders.
